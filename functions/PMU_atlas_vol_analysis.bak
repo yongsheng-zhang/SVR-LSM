@@ -1,0 +1,55 @@
+function [atlas_aal_roi, atlas_ba_roi] = PMU_atlas_vol_analysis(variables, p_map_pos, p_map_neg, threshold)
+    inv_p_map = zeros(size(p_map_pos));
+    inv_p_map(variables.pos_idx) = 1-p_map_pos(variables.pos_idx);
+    mask_idx = find(inv_p_map > 1-threshold); 
+    [atlas_aal_roi.pos, atlas_ba_roi.pos] = get_significant_roi(variables, mask_idx);
+
+    inv_p_map = zeros(size(p_map_neg));
+    inv_p_map(variables.neg_idx) = 1-p_map_neg(variables.neg_idx);
+    mask_idx = find(inv_p_map > 1-threshold); 
+    [atlas_aal_roi.neg, atlas_ba_roi.neg] = get_significant_roi(variables, mask_idx);            
+
+    % output the AAL atlas area name and significant voxel number for highlited ROIs
+    fid = fopen(variables.atlas_aal_roi_filename, 'w');
+    fprintf(fid, '============ Significant level: %7.4f ============= Positive contribution\n', threshold);
+    if(size(atlas_aal_roi.pos,1) == 0)
+        fprintf(fid, '\nNone\n');
+    else
+        fprintf(fid, 'index | %15s    | \t voxel number\n', 'atlas_name');
+        for ni=1:size(atlas_aal_roi.pos,1)
+            fprintf(fid, ' %3d, %20s, %6d out of %6d voxels\n', atlas_aal_roi.pos(ni,1), variables.atlas_aal.name{atlas_aal_roi.pos(ni,1)}, atlas_aal_roi.pos(ni,2), atlas_aal_roi.pos(ni,3));
+        end
+    end
+    fprintf(fid, '============ Significant level: %7.4f ============= Negative contribution\n', threshold);
+    if(size(atlas_aal_roi.neg,1) == 0)
+        fprintf(fid, '\nNone\n');
+    else
+        fprintf(fid, 'index | %15s    | \t voxel number\n', 'atlas_name');
+        for ni=1:size(atlas_aal_roi.neg,1)
+            fprintf(fid, ' %3d, %20s, %6d out of %6d voxels\n', atlas_aal_roi.neg(ni,1), variables.atlas_aal.name{atlas_aal_roi.neg(ni,1)}, atlas_aal_roi.neg(ni,2), atlas_aal_roi.neg(ni,3));
+        end
+    end
+    fclose(fid);
+
+    % output the Brodmann Area name and significant voxel number for highlited ROIs
+    fid = fopen(variables.atlas_ba_roi_filename, 'w');
+    fprintf(fid, '============ Significant level: %7.4f ============= Positive contribution\n', threshold);
+    if(size(atlas_ba_roi.pos,1) == 0)
+        fprintf(fid, '\nNone\n');
+    else
+        fprintf(fid, 'index | voxel number\n', 'atlas_name');
+        for ni=1:size(atlas_ba_roi.pos,1)
+            fprintf(fid, ' %3d, %6d out of %6d voxels\n', atlas_ba_roi.pos(ni,1), atlas_ba_roi.pos(ni,2), atlas_ba_roi.pos(ni,3));
+        end
+    end
+    fprintf(fid, '============ Significant level: %7.4f ============= Negative contribution\n', threshold);
+    if(size(atlas_ba_roi.neg,1) == 0)
+        fprintf(fid, '\nNone\n');
+    else
+        fprintf(fid, 'index | voxel number\n', 'atlas_name');
+        for ni=1:size(atlas_ba_roi.neg,1)
+            fprintf(fid, ' %3d, %6d out of %6d voxels\n', atlas_ba_roi.neg(ni,1), atlas_ba_roi.neg(ni,2), atlas_ba_roi.neg(ni,3));
+        end
+    end
+    fclose(fid);        
+end
